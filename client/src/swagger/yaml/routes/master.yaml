@@ -1,0 +1,140 @@
+# Master API Routes
+
+paths:
+  /client/master:
+    get:
+      summary: Get all master data
+      description: Fetches all master data for dropdown lists and form fields including states, districts, genders, etc.
+      tags:
+        - Master
+      responses:
+        '200':
+          description: Successfully retrieved master data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Fetched all master data"
+                  successCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      state:
+                        type: object
+                      districts:
+                        type: object
+                      gender:
+                        type: object
+                      IDCardType:
+                        type: object
+                      religions:
+                        type: object
+                      categories:
+                        type: object
+                      qualification:
+                        type: object
+                      councils:
+                        type: object
+                      courseCategories:
+                        type: object
+                      country:
+                        type: object
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  successCode:
+                    type: integer
+                    example: 500
+    post:
+      summary: Get specific master data
+      description: Fetches specific master data based on request parameters
+      tags:
+        - Master
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateID:
+                  type: integer
+                  description: State ID for filtering data
+                  example: 4
+                jvId:
+                  type: integer
+                  description: Job vacancy ID for course categories
+                  example: 14
+      responses:
+        '200':
+          description: Master data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Fetched requested master data"
+                  successCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  successCode:
+                    type: integer
+                    example: 500
+
+  /client/master/health:
+    get:
+      summary: Health check endpoint for master module
+      tags:
+        - Master
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Master service is up and running"

@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: Candidate Public Registration API
+  version: 1.0.0
+  description: API documentation for Candidate Public Registration
+  contact:
+    name: API Support
+    email: support@example.com
+servers:
+  - url: http://localhost:6161
+    description: Development server
+  - url: https://public-registration.skillmissionassam.org
+    description: Production server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths: {} 
