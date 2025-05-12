@@ -44,10 +44,24 @@ let query = {
     where courseCategory.fklJvId= ? 
     order by courseCategory.vsName`,
 
+    //All country query
     countryQuery:`SELECT country.pklCountryId,
 		country.vsCountryName
 		 FROM nw_mams_country as country 
-		 WHERE country.pklCountryId = 97 `
+		 WHERE country.pklCountryId = 97 `,
 
+     //all assembly query by council ID
+     assemblyQuery:`SELECT  
+	assembly.pklAssemblyConstituencyId AS assemblyId,
+	assembly.vsConstituencyName AS assemblyName
+	FROM nw_mams_constituency_assembly assembly
+	INNER JOIN nw_mams_constituency_loksabha lokasbha ON lokasbha.pklLoksabhaConstituencyId = assembly.fklLoksabhaConstituencyId
+	WHERE lokasbha.pklLoksabhaConstituencyId= ?`,
+  
+  //all registration type query 
+  allregistrationTypeQ:`SELECT reg_type.pklRegistrationTypeId,
+  reg_type.vsRegistrationSource 
+  FROM nw_mams_registration_type AS reg_type`
+  
 };
 module.exports = query;

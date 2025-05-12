@@ -16,6 +16,8 @@ const {
   councilService,
   courseCategoryService,
   countryService,
+  assesmblyService,
+  registrationType,
 } = require("../services/masterService");
 
 /**
@@ -40,16 +42,13 @@ const {
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 
-// all master data
+// Get master service
 const masterController = async (req, res, next) => {
   let result = {};
   let response = null;
   try {
     //fetched all state
     result.state = await stateService(req);
-
-    // fetched all districts
-    result.districts = await districtService(req);
 
     //fetched all gender
     result.gender = await genderService(req);
@@ -69,11 +68,11 @@ const masterController = async (req, res, next) => {
     // fetched all council
     result.councils = await councilService(req);
 
-    // fetched all course categories
-    result.courseCategories = await courseCategoryService(req);
-
     // fetched all country
     result.country = await countryService(req);
+
+    //fetched all registration type 
+    result.registrationTypes=await registrationType(req);
 
     logger.info("Master Controller: Successfully process master data", result);
     response = propagateResponse("Fetched all master data", result, 200);
@@ -85,14 +84,43 @@ const masterController = async (req, res, next) => {
   res.send(response);
 };
 
-// Id by master data
+// Post master service
 
 const masterPostController = async (req, res, next) => {
+  let result = {};
+  let response = null;
+  let expectItem = req?.body?.expectItem || null;
+  console.log(expectItem);
+  try {
+    switch (expectItem) {
+      case "districts":
+        // fetched all districts
+        result.districts = await districtService(req);
+        break;
+      case "assembly":
+        // fetched all assembly
+        result.assembly = await assesmblyService(req);
+        break;
+      case "courseCategory":
+        // fetched all course categories
+        result.courseCategories = await courseCategoryService(req);
+        break;
+      default:
+        response = propagateError(501, "MS-post-case", "No case found ");
+        res.send(response);
 
+    }
+
+    logger.info("Master Controller: Successfully process master data", result);
+    response = propagateResponse("Fetched all master data", result, 200);
+  } catch (error) {
+    console.log(error);
+    logger.error("Master Controller: Error in master data", error.message);
+  }
+  res.send(response);
 };
-
 
 module.exports = {
   masterController,
-  masterPostController
+  masterPostController,
 };

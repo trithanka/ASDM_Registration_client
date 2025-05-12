@@ -14,7 +14,6 @@ const query = require("../queries/master/masterQueries");
  * @returns {Object} Data object with result or error information
  */
 
-
 const masterService = async (type, query, queryParams = []) => {
   let mysqlConn;
   let data = {
@@ -55,18 +54,6 @@ const masterService = async (type, query, queryParams = []) => {
 const stateService = async (req) => {
   const state = await masterService("state", query.stateQuery);
   return state;
-};
-
-/**
- * Service to get all districts
- */
-const districtService = async (req) => {
-  const districts = await masterService(
-    "districts",
-    query.districtsQuery,
-    [req?.body?.stateID]
-  );
-  return districts;
 };
 
 /**
@@ -120,6 +107,50 @@ const councilService = async (req) => {
   return councils;
 };
 
+
+/**
+ * Service to get all countries
+ */
+const countryService = async (req) => {
+  const country = await masterService("country", query.countryQuery);
+  return country;
+};
+
+// Get all registration type 
+const registrationType=async(req)=>{
+  const registrationTypes=await masterService("RegistrationType",query.allregistrationTypeQ);
+  return registrationTypes;
+}
+
+// ---- start post master services -----
+
+/**
+ * Service to get all districts
+ */
+const districtService = async (req) => {
+  const districts = await masterService("districts", query.districtsQuery, [
+    req?.body?.stateID,
+  ]);
+  return districts;
+};
+
+// Get all assesmbly by council ID
+const assesmblyService = async (req) => {
+  if (req?.body?.councilID) {
+    const assembly = await masterService("assembly", query.assemblyQuery, [
+      req?.body?.councilID,
+    ]);
+    return assembly;
+  } else {
+    let data = {
+      data: null,
+      isError: true,
+      message: "Council ID is required",
+    };
+    return data;
+  }
+};
+
 /**
  * Service to get all course categories
  */
@@ -133,16 +164,8 @@ const courseCategoryService = async (req) => {
   return courseCategories;
 };
 
-/**
- * Service to get all countries
- */
-const countryService = async (req) => {
-  const country = await masterService(
-    "country",
-    query.countryQuery,
-  );
-  return country;
-};
+
+// ---- end post master services ----
 
 module.exports = {
   stateService,
@@ -154,5 +177,7 @@ module.exports = {
   qualificationService,
   councilService,
   courseCategoryService,
-  countryService
+  countryService,
+  assesmblyService,
+  registrationType
 };
