@@ -5,6 +5,7 @@ const {
 } = require("../../utils/responsehandler");
 const logger = require("../../utils/logger");
 const query = require("../queries/master/masterQueries");
+const { checkConnection } = require("../../utils/supportDatabase");
 
 /**
  * Utility function to fetch master data from database
@@ -22,27 +23,26 @@ const masterService = async (type, query, queryParams = []) => {
     isError: false,
   };
 
-  // Initialize mysql connection
-  try {
-    mysqlConn = await connection.getDB();
-  } catch (error) {
-    data.errorCode = "MS-SQL-1";
-    data.isError = true;
-    data.statusCode = 501;
-    data.message = "Mysql connection error";
-  }
+  // Inilized mysql connection
+  let sqlConn = await checkConnection();
+  mysqlConn = sqlConn?.mysqlConn;
 
-  // Process main data
-  try {
-    data.data = await connection.query(mysqlConn, query, queryParams);
-  } catch (error) {
-    logger.error(error);
-    data.errorCode = `MS-${type}-1`;
-    data.isError = true;
-  } finally {
-    if (mysqlConn && typeof mysqlConn.release === "function") {
-      mysqlConn.release();
+  if (!sqlConn?.isError) {
+    try {
+
+      // execute any mastr query 
+      data.data = await connection.query(mysqlConn, query, queryParams);
+    } catch (error) {
+      logger.error(error);
+      data.errorCode = `Service-MS-${type}-1`;
+      data.isError = true;
+    } finally {
+      if (mysqlConn && typeof mysqlConn.release === "function") {
+        mysqlConn.release();
+      }
     }
+  }else{
+    data=sqlConn;
   }
 
   return data;
@@ -107,7 +107,6 @@ const councilService = async (req) => {
   return councils;
 };
 
-
 /**
  * Service to get all countries
  */
@@ -116,11 +115,35 @@ const countryService = async (req) => {
   return country;
 };
 
-// Get all registration type 
-const registrationType=async(req)=>{
-  const registrationTypes=await masterService("RegistrationType",query.allregistrationTypeQ);
+// Get all registration type
+const registrationType = async (req) => {
+  const registrationTypes = await masterService(
+    "RegistrationType",
+    query.allregistrationTypeQ
+  );
   return registrationTypes;
-}
+};
+
+//Get all schemes
+const schemeService = async (req) => {
+  const schemes = await masterService("Schemes", query.schemesQuery);
+  return schemes;
+};
+
+//Get all sector
+const sectorService = async (req) => {
+  const sectors = await masterService("sectors", query.sectorsQuery);
+  return sectors;
+};
+
+//Get all sector
+const courseCategoryService = async (req) => {
+  const courseCategories = await masterService(
+    "courseCategories",
+    query.courseCategoryQuery
+  );
+  return courseCategories;
+};
 
 // ---- start post master services -----
 
@@ -151,20 +174,6 @@ const assesmblyService = async (req) => {
   }
 };
 
-/**
- * Service to get all course categories
- */
-const courseCategoryService = async (req) => {
-  let jvId = req?.body?.jvId || 14;
-  const courseCategories = await masterService(
-    "courseCategory",
-    query.courseCategoriesQuery,
-    [jvId]
-  );
-  return courseCategories;
-};
-
-
 // ---- end post master services ----
 
 module.exports = {
@@ -176,8 +185,10 @@ module.exports = {
   categoryService,
   qualificationService,
   councilService,
-  courseCategoryService,
   countryService,
   assesmblyService,
-  registrationType
+  registrationType,
+  schemeService,
+  sectorService,
+  courseCategoryService,
 };

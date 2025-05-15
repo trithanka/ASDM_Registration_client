@@ -18,6 +18,8 @@ const {
   countryService,
   assesmblyService,
   registrationType,
+  schemeService,
+  sectorService,
 } = require("../services/masterService");
 
 /**
@@ -43,7 +45,7 @@ const {
  */
 
 // Get master service
-const masterController = async (req, res, next) => {
+const masterController = async (req, res) => {
   let result = {};
   let response = null;
   try {
@@ -74,19 +76,28 @@ const masterController = async (req, res, next) => {
     //fetched all registration type 
     result.registrationTypes=await registrationType(req);
 
-    logger.info("Master Controller: Successfully process master data", result);
+    // fetched all schemes 
+    result.schemes=await schemeService(req);
+
+    // fetched all sectors 
+    result.sectors=await sectorService(req);
+
+    // fetched all course category  
+    result.courseCategries=await courseCategoryService(req);
+
+    // logger.info("Master Controller: Successfully process master data", result);
     response = propagateResponse("Fetched all master data", result, 200);
   } catch (error) {
     console.log(error);
     logger.error("Master Controller: Error in master data", error.message);
-    response = propagateError(501, "MS-main-1", "failed in master section");
+    response = propagateError(501, "Controller-MS-main-1", "failed in master section");
   }
   res.send(response);
 };
 
 // Post master service
 
-const masterPostController = async (req, res, next) => {
+const masterPostController = async (req, res) => {
   let result = {};
   let response = null;
   let expectItem = req?.body?.expectItem || null;
@@ -101,21 +112,18 @@ const masterPostController = async (req, res, next) => {
         // fetched all assembly
         result.assembly = await assesmblyService(req);
         break;
-      case "courseCategory":
-        // fetched all course categories
-        result.courseCategories = await courseCategoryService(req);
-        break;
+      
       default:
-        response = propagateError(501, "MS-post-case", "No case found ");
-        res.send(response);
+        response = propagateError(501, "MS-post-case", "expectItem needed in the body");
+        return res.send(response);
 
     }
-
-    logger.info("Master Controller: Successfully process master data", result);
+    // logger.info("Master Controller: Successfully process master data", result);
     response = propagateResponse("Fetched all master data", result, 200);
   } catch (error) {
     console.log(error);
     logger.error("Master Controller: Error in master data", error.message);
+    response = propagateError(501, "Controller-MS-main-2", "failed in master section");
   }
   res.send(response);
 };
