@@ -4,7 +4,7 @@ paths:
   /client/master:
     get:
       summary: Get all master data
-      description: Fetches all master data for dropdown lists and form fields including states, districts, genders, etc.
+      description: Fetches all master data for dropdown lists and form fields including states, districts, genders, IDCardType, religions, categories, qualification, councils, country, registrationTypes, schemes, sectors and courseCategories.
       tags:
         - Master
       responses:
@@ -29,24 +29,40 @@ paths:
                     properties:
                       state:
                         type: object
-                      districts:
-                        type: object
+                        description: All state data
                       gender:
                         type: object
+                        description: Gender options
                       IDCardType:
                         type: object
+                        description: ID card type options
                       religions:
                         type: object
+                        description: Religion options
                       categories:
                         type: object
+                        description: Category options
                       qualification:
                         type: object
+                        description: Qualification options
                       councils:
                         type: object
-                      courseCategories:
-                        type: object
+                        description: Council data
                       country:
                         type: object
+                        description: Country data
+                      registrationTypes:
+                        type: object
+                        description: Registration type options
+                      schemes:
+                        type: object
+                        description: Available schemes
+                      sectors:
+                        type: object
+                        description: Available sectors
+                      courseCategries:
+                        type: object
+                        description: Course categories
         '500':
           description: Server error
           content:
@@ -75,14 +91,14 @@ paths:
             schema:
               type: object
               properties:
+                expectItem:
+                  type: string
+                  description: Specific data type to retrieve (e.g., "districts", "assembly")
+                  example: "districts"
                 stateID:
                   type: integer
-                  description: State ID for filtering data
+                  description: State ID for filtering district data
                   example: 4
-                jvId:
-                  type: integer
-                  description: Job vacancy ID for course categories
-                  example: 14
       responses:
         '200':
           description: Master data retrieved successfully
@@ -96,12 +112,19 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Fetched requested master data"
+                    example: "Fetched all master data"
                   successCode:
                     type: integer
                     example: 200
                   data:
                     type: object
+                    properties:
+                      districts:
+                        type: object
+                        description: District data when expectItem is "districts"
+                      assembly:
+                        type: object
+                        description: Assembly data when expectItem is "assembly"
         '500':
           description: Server error
           content:

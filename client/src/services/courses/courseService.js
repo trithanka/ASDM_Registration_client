@@ -65,7 +65,7 @@ const allCoursesService = async (req) => {
   return response;
 };
 
-//Get all course service
+//Get all course details by id service
 const courseDetailsByID = async (req) => {
   let mysqlConn;
   let data = {

@@ -5,7 +5,7 @@ const {
 } = require("../../utils/responsehandler");
 
 const { allCoursesService, courseDetailsByID } = require("../services/courses/courseService");
-const { allJobsService } = require("../services/jobs/JobService");
+const { allJobsService, jobDetailsByID } = require("../services/jobs/JobService");
 
 //Get all courses
 const allCourseListController = async (req, res) => {
@@ -66,8 +66,29 @@ const allJobsListController = async (req, res) => {
   res.send(result);
 };
 
+//Get job details by id with company details
+const jobDetailsController = async (req, res) => {
+  let result = {};
+  let response = null;
+
+  try {
+    result = await jobDetailsByID(req);
+    response = propagateResponse("Fetched jobs details with company details", result, 200);
+  } catch (error) {
+    console.log(error);
+    logger.error("Job Controller: Error in job details", error.message);
+    response = propagateError(
+      501,
+      "Controller-Jobs-Details-1",
+      "failed in all jobs details section"
+    );
+  }
+  res.send(result);
+};
+
 module.exports = {
   allCourseListController,
   courseByIdController,
-  allJobsListController
+  allJobsListController,
+  jobDetailsController
 };

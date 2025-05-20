@@ -1,0 +1,309 @@
+# Get API Routes
+
+paths:
+  /client/get/course:
+    post:
+      summary: Get all courses
+      description: Fetches a list of all available courses
+      tags:
+        - Get Data
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                # Add any filter parameters if they exist
+                filters:
+                  type: object
+                  description: Optional filters for courses
+      responses:
+        '200':
+          description: Successfully retrieved courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Fetched all courses"
+                  successCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: "Nursing Course"
+                        # Add more properties based on your actual data structure
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  successCode:
+                    type: integer
+                    example: 501
+                  error:
+                    type: string
+                    example: "Controller-Course-List-1"
+
+  /client/get/course-by-id:
+    post:
+      summary: Get course details by ID
+      description: Fetches detailed information about a specific course by its ID including training centers
+      tags:
+        - Get Data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: integer
+                  description: ID of the course to retrieve
+                  example: 12
+      responses:
+        '200':
+          description: Successfully retrieved course details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Fetched course details"
+                  successCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 12
+                      name:
+                        type: string
+                        example: "Nursing Course"
+                      description:
+                        type: string
+                        example: "Comprehensive nursing training program"
+                      trainingCenters:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 45
+                            name:
+                              type: string
+                              example: "Medical Training Center"
+                            location:
+                              type: string
+                              example: "New Delhi"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  successCode:
+                    type: integer
+                    example: 501
+                  error:
+                    type: string
+                    example: "Controller-Course-by-ID-1"
+
+  /client/get/jobs:
+    post:
+      summary: Get all jobs
+      description: Fetches a list of all available job postings
+      tags:
+        - Get Data
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                # Add any filter parameters if they exist
+                filters:
+                  type: object
+                  description: Optional filters for jobs
+      responses:
+        '200':
+          description: Successfully retrieved jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Fetched all jobs"
+                  successCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 5
+                        title:
+                          type: string
+                          example: "Staff Nurse"
+                        companyName:
+                          type: string
+                          example: "Apollo Hospital"
+                        location:
+                          type: string
+                          example: "Mumbai"
+                        salary:
+                          type: string
+                          example: "30000-45000"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  successCode:
+                    type: integer
+                    example: 501
+                  error:
+                    type: string
+                    example: "Controller-Jobs-List-1"
+                    
+  /client/get/job-by-id:
+    post:
+      summary: Get job details by ID
+      description: Fetches detailed information about a specific job posting and company by its ID
+      tags:
+        - Get Data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jobId:
+                  type: integer
+                  description: ID of the job to retrieve
+                  example: 5
+      responses:
+        '200':
+          description: Successfully retrieved job details with company information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Fetched jobs details with company details"
+                  successCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 5
+                      title:
+                        type: string
+                        example: "Staff Nurse"
+                      description:
+                        type: string
+                        example: "We are looking for registered nurses to join our healthcare team"
+                      requirements:
+                        type: string
+                        example: "Bachelor's degree in nursing, 2+ years experience"
+                      salary:
+                        type: string
+                        example: "30000-45000"
+                      company:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 12
+                          name:
+                            type: string
+                            example: "Apollo Hospital"
+                          address:
+                            type: string
+                            example: "Plot 3, Sector 23, Mumbai"
+                          contact:
+                            type: string
+                            example: "hr@apollohospital.com"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  successCode:
+                    type: integer
+                    example: 501
+                  error:
+                    type: string
+                    example: "Controller-Jobs-Details-1" 
