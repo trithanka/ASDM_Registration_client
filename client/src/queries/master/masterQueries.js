@@ -1,5 +1,8 @@
 // All Master queries
 let query = {
+  verifyOtp: `SELECT publicRegistration.dtEndDate AS expiryDate 
+		FROM nw_public_registration publicRegistration 
+		WHERE publicRegistration.pklPublicRegistrationId=?`,
   //all state query
   stateQuery:
     "SELECT state.pklStateId AS stateId, state.vsStateName AS stateName FROM nw_mams_state state WHERE state.fklCountryId=97 ORDER BY state.vsStateName",
@@ -76,6 +79,13 @@ let query = {
   course_cate.vsCode,
   course_cate.vsProjectTypeId 
   FROM nw_coms_course_category as course_cate 
-  ORDER BY course_cate.vsName`
+  ORDER BY course_cate.vsName`,
+  /*********************************************************************************************/
+	insertSmsOtp: `INSERT INTO nw_public_registration(vsMobileNumber, iSmsOTP, vsOTPType, dtStartDate, 
+  dtEndDate, dtCreatedDate, dtModifiedDate) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  /*********************************************************************************************/
+	updateSmsOtp: `UPDATE nw_public_registration 
+  SET bSMSSent=?, dtModifiedDate=? 
+  WHERE pklPublicRegistrationId=?`,
 };
 module.exports = query;

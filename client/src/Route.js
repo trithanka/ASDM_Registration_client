@@ -9,5 +9,12 @@ Router.use('/master', masterRoute);
 const getRoute = require('./routes/get.routes.js');
 Router.use('/get', getRoute);
 
+//post route
+const postRoute = require('./routes/post.routes.js');
+Router.use('/post', postRoute);
+
+//auth route
+const authRoute = require('./routes/auth.routes.js')
+Router.use('/auth',authRoute)
 
 module.exports = Router;
