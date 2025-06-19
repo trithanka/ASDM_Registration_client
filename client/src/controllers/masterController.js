@@ -83,8 +83,8 @@ const masterController = async (req, res) => {
     result.sectors=await sectorService(req);
 
     // fetched all course category  
-    result.courseCategries=await courseCategoryService(req);
-
+    result.courseCategries=await courseCategoryService(req);``
+    
     // logger.info("Master Controller: Successfully process master data", result);
     response = propagateResponse("Fetched all master data", result, 200);
   } catch (error) {

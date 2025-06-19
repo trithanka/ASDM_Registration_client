@@ -21,6 +21,7 @@ const query = {
         ?,?,?,?,
         ?,?,?,?,
         ?,?,?,?,?,?,?,?,?,?)`,
+        saveCastDetails:`INSERT INTO nw_candidate_caste_dtl (fklCandidateId,fklCasteCategoryId) VALUES (?,?) `,
   saveContactDetails: `INSERT INTO nw_candidate_contact_dtl
         (fklCandidateId, vsPrimaryMobileCountryCode, vsPrimaryMobileNo, 
         vsOtherMobileNo, vsPrimaryEmail, dtModified) 

@@ -1,8 +1,6 @@
 // All Master queries
 let query = {
-  verifyOtp: `SELECT publicRegistration.dtEndDate AS expiryDate 
-		FROM nw_public_registration publicRegistration 
-		WHERE publicRegistration.pklPublicRegistrationId=?`,
+ 
   //all state query
   stateQuery:
     "SELECT state.pklStateId AS stateId, state.vsStateName AS stateName FROM nw_mams_state state WHERE state.fklCountryId=97 ORDER BY state.vsStateName",
@@ -87,5 +85,12 @@ let query = {
 	updateSmsOtp: `UPDATE nw_public_registration 
   SET bSMSSent=?, dtModifiedDate=? 
   WHERE pklPublicRegistrationId=?`,
+
+  verifyOtp: `SELECT publicRegistration.dtEndDate AS expiryDate ,publicRegistration.pklPublicRegistrationId as id
+  FROM nw_public_registration publicRegistration 
+  WHERE publicRegistration.iSmsOTP=? and publicRegistration.vsMobileNumber =? and publicRegistration.bSmsVerified= 0`,
+  updateMobile1Verified: `UPDATE nw_public_registration 
+		SET  bSmsVerified=1 
+		WHERE pklPublicRegistrationId=?`,
 };
 module.exports = query;

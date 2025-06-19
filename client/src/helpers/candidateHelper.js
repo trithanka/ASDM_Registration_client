@@ -93,6 +93,13 @@ exports.saveRegistration =async(postParam, mysqlCon)=> {
 
     const candidateId = basicResult.insertId;
 
+    // *** Save Caste Details ***
+
+    await connection.query(mysqlCon,query.saveCastDetails,[
+        candidateId,
+        postParam.fklCasteCategoryId
+    ]);
+
     // Save contact details
     await connection.query(mysqlCon, query.saveContactDetails, [
         candidateId,

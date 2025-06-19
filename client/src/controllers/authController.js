@@ -157,8 +157,8 @@ exports.verifyOtpController = async (req, res) => {
     let currentDateMoment = null;
     let endDate = null;
     let endDateMoment = null;
-    let insertedId = postParam.insertedId;
-    let mobile1Verified = postParam.obj.mobile1Verified;
+    let otp = postParam.otp;
+    let mobile = postParam.mobile;
     try {
         try {
             mysqlCon = await mysqlDB.getDB();
@@ -166,13 +166,14 @@ exports.verifyOtpController = async (req, res) => {
             console.error(error);
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO100)");
         }
-        if (mobile1Verified) {
+      
             try {
-                queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [insertedId]);
+                queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [otp,mobile]);
             } catch (error) {
                 console.error(error);
                 throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO110)");
             }
+            // console.log("higi-----------",queryResultObj)
             if (queryResultObj && queryResultObj.length > 0) {
                 currentDateMoment = moment(currentDate);
                 endDate = queryResultObj[0].expiryDate;
@@ -180,11 +181,13 @@ exports.verifyOtpController = async (req, res) => {
                 if (currentDateMoment.isAfter(endDateMoment)) {
                     throw new Error("The entered OTP has expired(sCandidateRegistrationCRS-VEO120)");
                 }
+                queryResultObj = await mysqlDB.query(mysqlCon, query.updateMobile1Verified, [queryResultObj[0].id]);
+                result.status = 'success';
             } else {
-                throw new Error("Register Email First (sCandidateRegistrationCRS-VSO130)")
+                 result.status= false
             }
-            queryResultObj = await mysqlDB.query(mysqlCon, query.updateMobile1Verified, [mobile1Verified, insertedId]);
-        }
+            res.send(result)
+        
     } catch (error) {
         console.error(error);
         throw error;
@@ -193,6 +196,5 @@ exports.verifyOtpController = async (req, res) => {
             mysqlCon.release();
         }
     }
-    result.status = 'success';
-    res.send(result)
+    
 };
