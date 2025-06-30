@@ -3,6 +3,8 @@ const logger = require('./utils/logger'); // Adjust the path as necessary
 const app = express();
 const port = 6161;
 const bodyParser = require('body-parser');
+const env = require('dotenv');
+env.config();
 const { cryptoService } = require('./utils/cryptoService'); // Import the cryptoService function
 const cors = require('cors');
 // const { decryptMiddleware } = require('./middlleware/decrypt.middleware');

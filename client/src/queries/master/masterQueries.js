@@ -1,6 +1,7 @@
 // All Master queries
 let query = {
  
+  checkMobileExist: `select * from ds.nw_candidate_contact_dtl WHERE vsPrimaryMobileNo = ?`,
   //all state query
   stateQuery:
     "SELECT state.pklStateId AS stateId, state.vsStateName AS stateName FROM nw_mams_state state WHERE state.fklCountryId=97 ORDER BY state.vsStateName",
@@ -92,5 +93,7 @@ let query = {
   updateMobile1Verified: `UPDATE nw_public_registration 
 		SET  bSmsVerified=1 
 		WHERE pklPublicRegistrationId=?`,
+
+      getUserByUsername: `SELECT * FROM nw_loms_login WHERE vsLoginName = ? and bEnabled=1`,
 };
 module.exports = query;

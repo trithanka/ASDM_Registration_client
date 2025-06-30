@@ -5,10 +5,18 @@ var request = require('supertest');
 let MIN_OTP = 100001;
 let MAX_OTP = 999999;
 let DATE_TIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
-
+const cryptoLoginService = require("../../utils/cryptoLoginService.js");
+const jwt = require("jsonwebtoken");
+const { propagateResponse, propagateError } = require("../../utils/responsehandler.js");
 
 exports.getOtpController = async (req, res) => {
     postParam = req.body
+    if(!postParam?.mobile && !postParam.isLogin){
+        return res.status(400).send({
+            status: false,
+            message: "Invalid request"
+        });
+    }
     let mobile1OTP = 777777;
     let otpExpireMinutes = 10;
     let startMoment = null;
@@ -22,7 +30,7 @@ exports.getOtpController = async (req, res) => {
     let queryResultObj = {};
     let endDateServerFormat = null;
     let endDateServerFormatMoment = null;
-
+    let mobileExist = null;
     try {
         try {
             mysqlCon = await mysqlDB.getDB();
@@ -30,9 +38,7 @@ exports.getOtpController = async (req, res) => {
             console.error(error);
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-SSO100)");
         }
-        // if (postParam.insertedId) {} else {
-        //     throw new Error(`Please Register Email First.`);
-        // }
+       
         await validateMobile(postParam, mysqlCon);
         mobile1OTP = await randomOTP(MIN_OTP, MAX_OTP);
         startMoment = moment();
@@ -50,6 +56,21 @@ exports.getOtpController = async (req, res) => {
         }
 
         try {
+            //check if mobile no exist if yes then generate token otherwise token set as null
+            mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
+            if(postParam.isLogin){
+                if(mobileExist.length > 1){
+                    return res.status(400).send(propagateError(400, "Multiple_Mobile_Number_Found", "Multiple mobile number found! Please contact admin"));
+                }else if(mobileExist.length === 0){
+                    return res.status(400).send(propagateError(400, "Mobile_Number_Not_Found", "Mobile number not found!"));
+                }
+            }else{
+                if(mobileExist.length === 1){
+                    return res.status(400).send(propagateError(400, "Mobile_Number_Already_Exist", "Mobile number already exists"));
+                }else if(mobileExist.length > 1){
+                    return res.status(400).send(propagateError(400, "Multiple_Mobile_Number_Found", "Multiple mobile number found! please contact admin"));
+                }
+            }
             queryResultObj = await mysqlDB.query(mysqlCon, query.insertSmsOtp,
                 [postParam.mobile, mobile1OTP, "CANDIDATE_PUBLIC_REGISTRATION_CONTACT_VERIFICATION",
                     startDate, endDate, startDate, startDate
@@ -92,8 +113,8 @@ exports.getOtpController = async (req, res) => {
     resultObj.mobile1 = postParam.mobile;
     resultObj.insertedId = insertedId;
     resultObj.mobile1OTP = mobile1OTP;
-
-    return res.send(resultObj);
+    return res.send(propagateResponse("OTP sent successfully", resultObj, "OTP_SENT_SUCCESSFULLY", 200));
+    
 };
 
 let validateMobile = async (postParam, mysqlCon) => {
@@ -159,6 +180,7 @@ exports.verifyOtpController = async (req, res) => {
     let endDateMoment = null;
     let otp = postParam.otp;
     let mobile = postParam.mobile;
+    let token = null;
     try {
         try {
             mysqlCon = await mysqlDB.getDB();
@@ -183,10 +205,16 @@ exports.verifyOtpController = async (req, res) => {
                 }
                 queryResultObj = await mysqlDB.query(mysqlCon, query.updateMobile1Verified, [queryResultObj[0].id]);
                 result.status = 'success';
+                //check if mobile exist then send token otherwise not
+                const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
+                if(mobileExist.length > 0){
+                    token = jwt.sign({ mobile: postParam.mobile}, process.env.JWT_SECRET, { expiresIn: '30d' });
+                }
             } else {
-                 result.status= false
+                return res.status(400).send(propagateError(400, "OTP_NOT_VALID", "OTP not valid"));
             }
-            res.send(result)
+            result.token = token;
+            return res.send(propagateResponse("OTP verified successfully", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
         
     } catch (error) {
         console.error(error);
@@ -197,4 +225,56 @@ exports.verifyOtpController = async (req, res) => {
         }
     }
     
+};
+
+
+
+exports.loginController = async (req, res) => {
+    let mysqlCon = null;
+    try {
+        mysqlCon = await mysqlDB.getDB();
+    } catch (error) {
+        console.error(error);
+        throw new Error("Error connecting to db");
+    }
+    if(!req.body?.username || !req.body?.password){
+        return res.status(400).send({
+            status: false,
+            message: "Invalid username or password"
+        });
+    }
+    const { username, password} = req.body;
+    
+
+    try {
+        const rows = await mysqlDB.query(mysqlCon, query.getUserByUsername, [username]);
+        if (rows.length === 0) {
+            return res.status(400).send({
+                status: false,
+                message: "Invalid username"
+            });
+        }
+        const encryptedPassword = cryptoLoginService.encrypt(password);
+        const admin = rows[0];
+        if (encryptedPassword !== admin.vsPassword) {
+            return res.status(400).send({
+                status: false,
+                message: "Invalid username or password"
+            });
+        }
+
+        //generate token
+        const token = jwt.sign({ admin_id: admin.admin_id, email: admin.email, admin_type: admin.admin_type}, process.env.JWT_SECRET, { expiresIn: '30d' });
+        res.status(200).send(propagateResponse("Login successful", {
+            status: true,
+            message: "Login successful",
+            type: admin.admin_type,
+            token: token
+        }, "LOGIN_SUCCESSFUL", 200));
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(propagateError(500, "Internal Server Error while logging in admin", "Internal Server Error while logging in admin"));
+    }finally {
+        if (mysqlCon) mysqlCon.release();
+    }
 };
