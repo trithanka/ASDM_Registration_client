@@ -181,6 +181,7 @@ exports.verifyOtpController = async (req, res) => {
     let otp = postParam.otp;
     let mobile = postParam.mobile;
     let token = null;
+
     try {
         try {
             mysqlCon = await mysqlDB.getDB();
@@ -188,33 +189,46 @@ exports.verifyOtpController = async (req, res) => {
             console.error(error);
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO100)");
         }
-      
-            try {
-                queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [otp,mobile]);
-            } catch (error) {
-                console.error(error);
-                throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO110)");
-            }
-            // console.log("higi-----------",queryResultObj)
-            if (queryResultObj && queryResultObj.length > 0) {
-                currentDateMoment = moment(currentDate);
-                endDate = queryResultObj[0].expiryDate;
-                endDateMoment = moment(endDate);
-                if (currentDateMoment.isAfter(endDateMoment)) {
-                    throw new Error("The entered OTP has expired(sCandidateRegistrationCRS-VEO120)");
-                }
-                queryResultObj = await mysqlDB.query(mysqlCon, query.updateMobile1Verified, [queryResultObj[0].id]);
-                result.status = 'success';
-                //check if mobile exist then send token otherwise not
-                const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
-                if(mobileExist.length > 0){
-                    token = jwt.sign({ mobile: postParam.mobile}, process.env.JWT_SECRET, { expiresIn: '30d' });
-                }
-            } else {
-                return res.status(400).send(propagateError(400, "OTP_NOT_VALID", "OTP not valid"));
+
+        // Bypass OTP check for 777777
+        if (otp === '777777') {
+            result.status = 'success';
+            const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
+            if(mobileExist.length > 0){
+                token = jwt.sign({ mobile: postParam.mobile, type: "candidate"}, process.env.JWT_SECRET, { expiresIn: '30d' });
             }
             result.token = token;
             return res.send(propagateResponse("OTP verified successfully", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
+        }
+      
+        try {
+            queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [otp,mobile]);
+        } catch (error) {
+            console.error(error);
+            throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO110)");
+        }
+        // console.log("higi-----------",queryResultObj)
+        if (queryResultObj && queryResultObj.length > 0) {
+            currentDateMoment = moment(currentDate);
+            endDate = queryResultObj[0].expiryDate;
+            endDateMoment = moment(endDate);
+            if (currentDateMoment.isAfter(endDateMoment)) {
+                throw new Error("The entered OTP has expired(sCandidateRegistrationCRS-VEO120)");
+            }
+            queryResultObj = await mysqlDB.query(mysqlCon, query.updateMobile1Verified, [queryResultObj[0].id]);
+            result.status = 'success';
+            
+            //check if mobile exist then send token otherwise not
+            const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
+            console.log("mobileExist",mobileExist[0])
+            if(mobileExist.length > 0){
+                token = jwt.sign({ data: mobileExist[0], type: "candidate"}, process.env.JWT_SECRET, { expiresIn: '30d' });
+            }
+        } else {
+            return res.status(400).send(propagateError(400, "OTP_NOT_VALID", "OTP not valid"));
+        }
+        result.token = token;
+        return res.send(propagateResponse("OTP verified successfully", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
         
     } catch (error) {
         console.error(error);
@@ -226,11 +240,13 @@ exports.verifyOtpController = async (req, res) => {
     }
     
 };
+//10 normal hog , 16 super hog ,
 
 
 
 exports.loginController = async (req, res) => {
     let mysqlCon = null;
+    let data;
     try {
         mysqlCon = await mysqlDB.getDB();
     } catch (error) {
@@ -248,6 +264,7 @@ exports.loginController = async (req, res) => {
 
     try {
         const rows = await mysqlDB.query(mysqlCon, query.getUserByUsername, [username]);
+        // console.log("rows",rows)
         if (rows.length === 0) {
             return res.status(400).send({
                 status: false,
@@ -262,15 +279,18 @@ exports.loginController = async (req, res) => {
                 message: "Invalid username or password"
             });
         }
-
+        if (admin.pklRoleId === 58) {
+           data = await mysqlDB.query(mysqlCon, query.getUser, [admin.pklEntityId]);
+        }
         //generate token
-        const token = jwt.sign({ admin_id: admin.admin_id, email: admin.email, admin_type: admin.admin_type}, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ admin_id: admin.pklLoginId, login_name: admin.vsLoginName, type: admin.vsRoleName ,data:data}, process.env.JWT_SECRET, { expiresIn: '30d' });
         res.status(200).send(propagateResponse("Login successful", {
             status: true,
             message: "Login successful",
             type: admin.admin_type,
             token: token
         }, "LOGIN_SUCCESSFUL", 200));
+
     } catch (error) {
         console.error(error);
         res.status(500).send(propagateError(500, "Internal Server Error while logging in admin", "Internal Server Error while logging in admin"));

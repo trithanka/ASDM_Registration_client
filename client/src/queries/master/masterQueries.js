@@ -1,7 +1,53 @@
 // All Master queries
 let query = {
+  getUser:`select 
+	entity.vsEntityName as companyName,
+    entity.pklEntityId,
+    entity.fklRoleId as roleId,
+    entity.vsEmail1 as companyEmail,
+    entity.vsMobile1 as companyMobile,
+    entity.fklOrganizationTypeId as organizationTypeId,
+    orgType.vsOrganizationTypeName as organizationTypeName,
+    login.vsLoginName as userName,
+    emp.fklEmployerType as empTypeId,
+    empType.vsEmployerType as empTypeName,
+    emp.vsArea as companyAddress,
+    emp.vsPINCode as companyPinCode,
+    emp.dtModifiedDate as createdAt
+from nw_enms_entity entity 
+left join nw_mams_organization_type orgType on entity.fklOrganizationTypeId = orgType.pklOrganizationTypeId
+left join nw_loms_login login on entity.fklLoginId = login.pklLoginId
+left join nw_emms_employer_details emp on entity.pklEntityId = emp.fklENtityId
+left join nw_mams_employer_type empType on emp.fklEmployerType = empType.pklEmployerId
+ where entity.pklEntityId = ?;`,
  
-  checkMobileExist: `select * from ds.nw_candidate_contact_dtl WHERE vsPrimaryMobileNo = ?`,
+  checkMobileExist: `SELECT 
+        basic.vsFirstName as firstName,
+        basic.vsMiddleName as middleName,
+        basic.vsLastName as lastName,
+        basic.dtDOB as dob,
+        basic.vsGender as gender,
+        religion.vsReligionName as religion,
+        caste.vsCasteName as caste,
+        qual.vsQualification as qualification,
+        contact.vsPrimaryMobileNo as mobile,
+        basic.pklCandidateId
+    FROM 
+        nw_candidate_basic_dtl basic
+    LEFT JOIN 
+        nw_mams_religion religion ON basic.fklRelegionId = religion.pklReligionId
+    LEFT JOIN 
+        nw_candidate_caste_dtl candidateCaste ON candidateCaste.fklCandidateId = basic.pklCandidateId 
+    LEFT JOIN 
+        nw_mams_caste caste ON candidateCaste.fklCasteCategoryId = caste.pklCasteId
+    LEFT JOIN 
+        nw_candidate_qualification_dtl candidateQual ON candidateQual.fklCandidateId = basic.pklCandidateId
+    LEFT JOIN 
+        nw_mams_qualification qual ON qual.pklQualificationId = candidateQual.fklQualificationId
+    LEFT JOIN 
+        nw_candidate_contact_dtl contact ON contact.fklCandidateId = basic.pklCandidateId
+    WHERE 
+        contact.vsPrimaryMobileNo= ?`,
   //all state query
   stateQuery:
     "SELECT state.pklStateId AS stateId, state.vsStateName AS stateName FROM nw_mams_state state WHERE state.fklCountryId=97 ORDER BY state.vsStateName",
@@ -94,6 +140,9 @@ let query = {
 		SET  bSmsVerified=1 
 		WHERE pklPublicRegistrationId=?`,
 
-      getUserByUsername: `SELECT * FROM nw_loms_login WHERE vsLoginName = ? and bEnabled=1`,
+      getUserByUsername: `select role.vsRoleName,login.pklLoginId,login.vsLoginName,login.vsPassword,role.pklRoleId,entity.pklEntityId from ds.nw_loms_login login
+left join nw_enms_entity entity on entity.fklLoginId = login.pklLoginId
+left join  nw_mams_role role on entity.fklRoleId = role.pklRoleId
+ where login.vsLoginName = ? and login.bEnabled =1;`,
 };
 module.exports = query;
