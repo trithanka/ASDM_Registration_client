@@ -72,3 +72,28 @@ exports.registerCompany = async (companyData) => {
           }
     }
 };
+
+// *** Get Company By ID Service ***
+exports.getCompanyByIdService = async (entityId) => {
+  let mysqlCon = null;
+  let resultObj = {};
+  try {
+    mysqlCon = await connection.getDB();
+    const result = await connection.query(mysqlCon, query.getCompanyById, [entityId]);
+    resultObj = {
+      status: "success",
+      data: result && result.length > 0 ? result[0] : null,
+    };
+  } catch (error) {
+    console.log(error);
+    resultObj = {
+      status: "error",
+      message: error.message || "Failed to fetch company details",
+    };
+  } finally {
+    if (mysqlCon) {
+      await mysqlCon.release();
+    }
+  }
+  return resultObj;
+};

@@ -62,6 +62,33 @@ const query = {
         basic.bMailSent = ?,
         basic.vsReferenceNumber = ? 
     WHERE basic.pklCandidateId = ?`,
+
+    getCandidateById: `SELECT 
+        basic.vsFirstName as firstName,
+        basic.vsMiddleName as middleName,
+        basic.vsLastName as lastName,
+        basic.dtDOB as dob,
+        basic.vsGender as gender,
+        religion.vsReligionName as religion,
+        caste.vsCasteName as caste,
+        qual.vsQualification as qualification,
+        contact.vsPrimaryMobileNo as mobile,
+        basic.pklCandidateId
+    FROM 
+        nw_candidate_basic_dtl basic
+    LEFT JOIN 
+        nw_mams_religion religion ON basic.fklRelegionId = religion.pklReligionId
+    LEFT JOIN 
+        nw_candidate_caste_dtl candidateCaste ON candidateCaste.fklCandidateId = basic.pklCandidateId 
+    LEFT JOIN 
+        nw_mams_caste caste ON candidateCaste.fklCasteCategoryId = caste.pklCasteId
+    LEFT JOIN 
+        nw_candidate_qualification_dtl candidateQual ON candidateQual.fklCandidateId = basic.pklCandidateId
+    LEFT JOIN 
+        nw_mams_qualification qual ON qual.pklQualificationId = candidateQual.fklQualificationId
+    LEFT JOIN 
+        nw_candidate_contact_dtl contact ON contact.fklCandidateId = basic.pklCandidateId
+    WHERE basic.pklCandidateId=?`,
 };
 
 module.exports = query;

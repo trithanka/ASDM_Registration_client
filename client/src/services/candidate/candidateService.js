@@ -116,3 +116,28 @@ exports.save = async (postParam) => {
 
   return resultObj;
 };
+
+// *** Get Candidate By ID Service ***
+exports.getCandidateByIdService = async (candidateId) => {
+  let mysqlCon = null;
+  let resultObj = {};
+  try {
+    mysqlCon = await connection.getDB();
+    const result = await connection.query(mysqlCon, query.getCandidateById, [candidateId]);
+    resultObj = {
+      status: "success",
+      data: result && result.length > 0 ? result[0] : null,
+    };
+  } catch (error) {
+    console.log(error);
+    resultObj = {
+      status: "error",
+      message: error.message || "Failed to fetch candidate details",
+    };
+  } finally {
+    if (mysqlCon) {
+      await mysqlCon.release();
+    }
+  }
+  return resultObj;
+};
