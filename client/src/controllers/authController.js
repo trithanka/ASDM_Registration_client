@@ -190,17 +190,19 @@ exports.verifyOtpController = async (req, res) => {
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO100)");
         }
 
-        // Bypass OTP check for 777777
-        if (otp === '777777') {
-            result.status = 'success';
+        // OTP BYPASS: If OTP is 777777, skip DB check and expiry validation
+        if (otp === 777777 || otp === "777777") {
+            //check if mobile exist then send token otherwise not
             const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
+            console.log("mobileExist",mobileExist)
             if(mobileExist.length > 0){
-                token = jwt.sign({ mobile: postParam.mobile, type: "candidate"}, process.env.JWT_SECRET, { expiresIn: '30d' });
+                token = jwt.sign({ data: mobileExist[0], type: "candidate"}, process.env.JWT_SECRET, { expiresIn: '30d' });
             }
+            result.status = 'success';
             result.token = token;
-            return res.send(propagateResponse("OTP verified successfully", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
+            return res.send(propagateResponse("OTP verified successfully (bypass)", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
         }
-      
+       
         try {
             queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [otp,mobile]);
         } catch (error) {
