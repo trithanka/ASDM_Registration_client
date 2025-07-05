@@ -18,6 +18,12 @@ exports.registerCompany = async (companyData) => {
         mysqlCon = await connection.getDB();
         await connection.beginTransaction(mysqlCon);
 
+        //check username is already exist
+        const checkUsername = await connection.query(mysqlCon,query.checkUsername, [companyData.username]);
+        if(checkUsername.length > 0){
+            return propagateError(400,"Username already exists");
+        }
+
         // 1. Insert into nw_loms_login
         const encryptedPassword = encrypt(companyData.password);
         const loginResult = await connection.query(mysqlCon,query.saveLomsLogin,
@@ -65,7 +71,7 @@ exports.registerCompany = async (companyData) => {
 
         // Rollback transaction in case of error
         await mysqlCon.rollback();
-        return propagateError(error);
+        return propagateError(400,"Company registration failed",error.message);
     }finally{
         if (mysqlCon) {
             await mysqlCon.release(); // Ensure connection is released
