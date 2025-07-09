@@ -1,4 +1,5 @@
 const connection = require("../../../DATABASE/mysqlConnection");
+const response = require("api-response-wrapper");
 const {
   propagateResponse,
   propagateError,
@@ -121,12 +122,47 @@ exports.save = async (postParam) => {
 exports.getCandidateByIdService = async (candidateId) => {
   let mysqlCon = null;
   let resultObj = {};
+  let basicDetails = null;
+  let jobDetails = null;
+  let melaDetails = null;
   try {
     mysqlCon = await connection.getDB();
-    const result = await connection.query(mysqlCon, query.getCandidateById, [candidateId]);
+    //basic details
+    basicDetails = await connection.query(mysqlCon, query.getCandidateById, [candidateId]);
+    if(basicDetails.length < 1){
+      return resultObj = {
+        status: "error",
+        message: "Candidate not found",
+      };
+    }
+    //mela details
+    melaDetails = await connection.query(mysqlCon, query.getMelaDetails, [candidateId]);
+
+    jobDetails = await connection.query(mysqlCon, query.getJobDetails, [candidateId]);
+ 
+    //mela details inside job details which is applied by candidate
+    const jobMelaDetails = melaDetails.map(mela => {
+      const melaId = mela.melaId;    
+      return {
+        mela,
+        job: jobDetails.filter(job => job.melaId === melaId)
+      };
+    });
+
+    //address details
+    addressDetails = await connection.query(mysqlCon, query.getAddressDetails, [candidateId]);
+
+    //skill details
+    skillDetails = await connection.query(mysqlCon, query.getSkillDetails, [candidateId]);
+
     resultObj = {
       status: "success",
-      data: result && result.length > 0 ? result[0] : null,
+      data: {
+        basicDetails,
+        jobMelaDetails,
+        addressDetails,
+        skillDetails,
+      },
     };
   } catch (error) {
     console.log(error);

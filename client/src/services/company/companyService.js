@@ -21,7 +21,7 @@ exports.registerCompany = async (companyData) => {
         //check username is already exist
         const checkUsername = await connection.query(mysqlCon,query.checkUsername, [companyData.username]);
         if(checkUsername.length > 0){
-            return propagateError(400,"Username already exists");
+            return propagateError(400,"Company_registration_failed","Username already exists");
         }
 
         // 1. Insert into nw_loms_login
