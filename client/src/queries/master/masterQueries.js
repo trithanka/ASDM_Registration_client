@@ -144,5 +144,19 @@ left join nw_mams_employer_type empType on emp.fklEmployerType = empType.pklEmpl
 left join nw_enms_entity entity on entity.fklLoginId = login.pklLoginId
 left join  nw_mams_role role on entity.fklRoleId = role.pklRoleId
  where login.vsLoginName = ? and login.bEnabled =1;`,
+
+ getUserByUsernameMobilizer: `select 
+role.vsRoleName,
+login.pklLoginId,
+login.vsLoginName,
+login.vsPassword,
+role.pklRoleId,
+login.fklMelaId,
+mela.vsVenueName as venueName
+from ds.nw_loms_login login
+left join nw_loms_login_role logRole on login.pklLoginId= logRole.fklLoginId
+left join nw_mams_role role on logRole.fklRoleId = role.pklRoleId
+left join nw_jobmela_mela_dtl mela on mela.pklMelaId = login.fklMelaId
+ where login.vsLoginName = ? and login.bEnabled =1;`,
 };
 module.exports = query;

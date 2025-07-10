@@ -11,7 +11,7 @@ const { propagateResponse, propagateError } = require("../../utils/responsehandl
 
 exports.getOtpController = async (req, res) => {
     postParam = req.body
-    if(!postParam?.mobile && !postParam.isLogin){
+    if (!postParam?.mobile && !postParam.isLogin) {
         return res.status(400).send({
             status: false,
             message: "Invalid request"
@@ -38,7 +38,7 @@ exports.getOtpController = async (req, res) => {
             console.error(error);
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-SSO100)");
         }
-       
+
         await validateMobile(postParam, mysqlCon);
         mobile1OTP = await randomOTP(MIN_OTP, MAX_OTP);
         startMoment = moment();
@@ -58,16 +58,16 @@ exports.getOtpController = async (req, res) => {
         try {
             //check if mobile no exist if yes then generate token otherwise token set as null
             mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
-            if(postParam.isLogin){
-                if(mobileExist.length > 1){
+            if (postParam.isLogin) {
+                if (mobileExist.length > 1) {
                     return res.status(400).send(propagateError(400, "Multiple_Mobile_Number_Found", "Multiple mobile number found! Please contact admin"));
-                }else if(mobileExist.length === 0){
+                } else if (mobileExist.length === 0) {
                     return res.status(400).send(propagateError(400, "Mobile_Number_Not_Found", "Mobile number not found!"));
                 }
-            }else{
-                if(mobileExist.length === 1){
+            } else {
+                if (mobileExist.length === 1) {
                     return res.status(400).send(propagateError(400, "Mobile_Number_Already_Exist", "Mobile number already exists"));
-                }else if(mobileExist.length > 1){
+                } else if (mobileExist.length > 1) {
                     return res.status(400).send(propagateError(400, "Multiple_Mobile_Number_Found", "Multiple mobile number found! please contact admin"));
                 }
             }
@@ -76,7 +76,7 @@ exports.getOtpController = async (req, res) => {
                     startDate, endDate, startDate, startDate
                 ]);
             insertedId = queryResultObj.insertId;
-            if (insertedId !== undefined && insertedId !== null && insertedId.toString().trim().length > 0) {} else {
+            if (insertedId !== undefined && insertedId !== null && insertedId.toString().trim().length > 0) { } else {
                 throw new Error("Internal Server Error(OTP Cannot Send Now. Please try After Some Time)" +
                     "(sCandidateRegistrationCRS-SSO130)");
             }
@@ -85,7 +85,7 @@ exports.getOtpController = async (req, res) => {
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-SSO120)");
         }
 
-         smsStatus = await sendSmsForOtp(postParam.mobile, mobile1OTP, endDateServerFormat);
+        smsStatus = await sendSmsForOtp(postParam.mobile, mobile1OTP, endDateServerFormat);
 
         try {
             queryResultObj = await mysqlDB.query(mysqlCon, query.updateSmsOtp,
@@ -114,7 +114,7 @@ exports.getOtpController = async (req, res) => {
     resultObj.insertedId = insertedId;
     resultObj.mobile1OTP = mobile1OTP;
     return res.send(propagateResponse("OTP sent successfully", resultObj, "OTP_SENT_SUCCESSFULLY", 200));
-    
+
 };
 
 let validateMobile = async (postParam, mysqlCon) => {
@@ -139,7 +139,7 @@ let randomOTP = async (min, max) => {
     return OTP;
 };
 let sendSmsForOtp = async (mobile1, mobile1OTP, endDate) => {
-    
+
     let message = `OTP is ${mobile1OTP} for mobile number verification and valid till 10mins`;
     let smsObj = {};
     try {
@@ -159,7 +159,7 @@ let sendSMS = function (smsObject) {
         request('http://sms.amtronindia.in/form_/send_api_master_get.php?')
             .get("agency=AMTRON&password=skill@123&district=ALL&app_id=ASDM&sender_id=ASDMSM&unicode=false&to=" +
                 mobileNo + "&te_id=" + smsObject.smsTemplateId + "&msg=" + encodeURIComponent(smsObject.message))
-        .end(function (error, res) {
+            .end(function (error, res) {
                 if (error) {
                     reject(error);
                 }
@@ -170,7 +170,7 @@ let sendSMS = function (smsObject) {
 
 /****************************************************************************************/
 exports.verifyOtpController = async (req, res) => {
-    postParam= req.body
+    postParam = req.body
     let mysqlCon = null;
     let result = {};
     let queryResultObj = {};
@@ -194,17 +194,17 @@ exports.verifyOtpController = async (req, res) => {
         if (otp === 777777 || otp === "777777") {
             //check if mobile exist then send token otherwise not
             const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
-            console.log("mobileExist",mobileExist)
-            if(mobileExist.length > 0){
-                token = jwt.sign({ data: mobileExist[0], type: "candidate"}, process.env.JWT_SECRET, { expiresIn: '30d' });
+            console.log("mobileExist", mobileExist)
+            if (mobileExist.length > 0) {
+                token = jwt.sign({ data: mobileExist[0], type: "candidate" }, process.env.JWT_SECRET, { expiresIn: '30d' });
             }
             result.status = 'success';
             result.token = token;
             return res.send(propagateResponse("OTP verified successfully (bypass)", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
         }
-       
+
         try {
-            queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [otp,mobile]);
+            queryResultObj = await mysqlDB.query(mysqlCon, query.verifyOtp, [otp, mobile]);
         } catch (error) {
             console.error(error);
             throw new Error("Internal Server Error(sCandidateRegistrationCRS-VSO110)");
@@ -219,19 +219,19 @@ exports.verifyOtpController = async (req, res) => {
             }
             queryResultObj = await mysqlDB.query(mysqlCon, query.updateMobile1Verified, [queryResultObj[0].id]);
             result.status = 'success';
-            
+
             //check if mobile exist then send token otherwise not
             const mobileExist = await mysqlDB.query(mysqlCon, query.checkMobileExist, [postParam.mobile]);
-            console.log("mobileExist",mobileExist[0])
-            if(mobileExist.length > 0){
-                token = jwt.sign({ data: mobileExist[0], type: "candidate"}, process.env.JWT_SECRET, { expiresIn: '30d' });
+            console.log("mobileExist", mobileExist[0])
+            if (mobileExist.length > 0) {
+                token = jwt.sign({ data: mobileExist[0], type: "candidate" }, process.env.JWT_SECRET, { expiresIn: '30d' });
             }
         } else {
             return res.status(400).send(propagateError(400, "OTP_NOT_VALID", "OTP not valid"));
         }
         result.token = token;
         return res.send(propagateResponse("OTP verified successfully", result, "OTP_VERIFIED_SUCCESSFULLY", 200));
-        
+
     } catch (error) {
         console.error(error);
         throw error;
@@ -240,7 +240,7 @@ exports.verifyOtpController = async (req, res) => {
             mysqlCon.release();
         }
     }
-    
+
 };
 //10 normal hog , 16 super hog ,
 
@@ -249,54 +249,76 @@ exports.verifyOtpController = async (req, res) => {
 exports.loginController = async (req, res) => {
     let mysqlCon = null;
     let data;
+    let token;
+    let admin;
     try {
         mysqlCon = await mysqlDB.getDB();
     } catch (error) {
         console.error(error);
         throw new Error("Error connecting to db");
     }
-    if(!req.body?.username || !req.body?.password){
+    if (!req.body?.username || !req.body?.password) {
         return res.status(400).send({
             status: false,
             message: "Invalid username or password"
         });
     }
-    const { username, password} = req.body;
-    
+    const { username, password, role } = req.body;
+
 
     try {
-        const rows = await mysqlDB.query(mysqlCon, query.getUserByUsername, [username]);
-        // console.log("rows",rows)
-        if (rows.length === 0) {
-            return res.status(400).send({
-                status: false,
-                message: "Invalid username"
-            });
+        if (role === "company") {
+            const rows = await mysqlDB.query(mysqlCon, query.getUserByUsername, [username]);
+            // console.log("rows",rows)
+            if (rows.length === 0) {
+                return res.status(400).send({
+                    status: false,
+                    message: "Invalid username"
+                });
+            }
+            const encryptedPassword = cryptoLoginService.encrypt(password);
+            admin = rows[0];
+            if (encryptedPassword !== admin.vsPassword) {
+                return res.status(400).send({
+                    status: false,
+                    message: "Invalid username or password"
+                });
+            }
+            if (admin.pklRoleId === 58) {
+                data = await mysqlDB.query(mysqlCon, query.getUser, [admin.pklEntityId]);
+            }
+        }else if(role === "mobilizer"){
+            const rows = await mysqlDB.query(mysqlCon, query.getUserByUsernameMobilizer, [username]);
+            // console.log("rows",rows)
+            if (rows.length === 0) {
+                return res.status(400).send({
+                    status: false,
+                    message: "Invalid username"
+                });
+            }
+            const encryptedPassword = cryptoLoginService.encrypt(password);
+            admin = rows[0];
+            if (encryptedPassword !== admin.vsPassword) {
+                return res.status(400).send({
+                    status: false,
+                    message: "Invalid username or password"
+                });
+            }
         }
-        const encryptedPassword = cryptoLoginService.encrypt(password);
-        const admin = rows[0];
-        if (encryptedPassword !== admin.vsPassword) {
-            return res.status(400).send({
-                status: false,
-                message: "Invalid username or password"
-            });
-        }
-        if (admin.pklRoleId === 58) {
-           data = await mysqlDB.query(mysqlCon, query.getUser, [admin.pklEntityId]);
-        }
+
         //generate token
-        const token = jwt.sign({ admin_id: admin.pklLoginId, login_name: admin.vsLoginName, type: admin.vsRoleName ,data:data}, process.env.JWT_SECRET, { expiresIn: '30d' });
+        token = jwt.sign({ admin_id: admin.pklLoginId, login_name: admin.vsLoginName, type: admin.vsRoleName, data: data }, process.env.JWT_SECRET, { expiresIn: '30d' });
         res.status(200).send(propagateResponse("Login successful", {
             status: true,
             message: "Login successful",
-            type: admin.admin_type,
+            type: role,
             token: token
         }, "LOGIN_SUCCESSFUL", 200));
 
     } catch (error) {
         console.error(error);
         res.status(500).send(propagateError(500, "Internal Server Error while logging in admin", "Internal Server Error while logging in admin"));
-    }finally {
+    } finally {
         if (mysqlCon) mysqlCon.release();
     }
 };

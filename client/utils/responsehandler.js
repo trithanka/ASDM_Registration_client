@@ -8,6 +8,7 @@ function propagateResponse(message, data, successCode, statusCode ) {
     };
 }
 
+
 function propagateError(statusCode, errorCode, message) {
     return {
         statusCode,
